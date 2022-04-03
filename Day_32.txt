@@ -1,0 +1,78 @@
+Design database for Zen class programme
+
+users
+db.users.insertMany([{_id:1,name:"Arun",batch:"Weekend",course:"Full_Stack_Web_Development"},{_id:2,name:"Balaji",batch:"Weekend",course:"Full_Stack_Web_Development"},{_id:3,name:"Chandru",batch:"Weekend",course:"Full_Stack_Web_Development"},{_id:4,name:"Dinesh",batch:"Weekend",course:"Full_Stack_Web_Development"},{_id:5,name:"Elango",batch:"Weekend",course:"Full_Stack_Web_Development"}])
+
+
+codekata
+db.codekata.insertMany([{_id:1,name:"Arun",solved:18},{_id:2,name:"Balaji",solved:9},{_id:3,name:"Chandru",solved:23},{_id:4,name:"Dinesh",solved:12},{_id:5,name:"Elango",solved:28}])
+
+attendance
+db.attendance.insertMany([{_id:1,name:"Arun",attendance:7,absent:ISODate("2020-10-05")},{_id:2,name:"Balaji",attendance:7,absent:ISODate("2020-10-16")},{_id:3,name:"Chandru",attendance:8},{_id:4,name:"Dinesh",attendance:7,absent:ISODate("2020-10-28")},{_id:5,name:"Elango",attendance:8}])
+
+topics
+db.topics.insertMany([{_id:1,topic:"Javascript",date:ISODate("2020-09-25"),month:"September"},{_id:2,topic:"Html",date:ISODate("2020-10-05"),month:"October"},{_id:3,topic:"CSS",date:ISODate("2020-10-16"),month:"October"},{_id:4,topic:"React",date:ISODate("2020-10-21"),month:"October"},{_id:5,topic:"SQL",date:ISODate("2020-10-28"),month:"October"},{_id:6,topic:"MangoDB",date:ISODate("2020-11-05"),month:"November"}])
+
+tasks
+db.tasks.insertMany([{_id:1,task:"Javascript Calculator",date:ISODate("2020-09-25"),month:"September"},{_id:2,task:"Html for login page",date:ISODate("2020-10-05"),month:"October"},{_id:3,task:"CSS design for Home Page",date:ISODate("2020-10-16"),month:"October"},{_id:4,task:"React Sample Page ",date:ISODate("2020-10-21"),month:"October"},{_id:5,task:"SQL for the required queries",date:ISODate("2020-10-28"),month:"October",notsubmitted:"Dinesh"},{_id:6,task:"MangoDB for student database",date:ISODate("2020-11-05"),month:"November"}])
+
+company_drives
+db.companies.insertMany([{_id:1,company:"TCS",date:ISODate("2020-09-25"),month:"September",placement:"Chandru"},{_id:2,company:"WIPRO",date:ISODate("2020-10-05"),month:"October",placement:"Arun"},{_id:3,company:"GOOGLE",date:ISODate("2020-10-16"),month:"October",placement:["Chandru","Elango"]},{_id:4,company:"AMAZON",date:ISODate("2020-10-21"),month:"October",placement:"Balaji"},{_id:5,company:"INFOSYS",date:ISODate("2020-10-28"),month:"October",placement:["Dinesh","Arun"]},{_id:6,company:"EY",date:ISODate("2020-11-05"),month:"November"}])
+
+mentors
+db.mentors.insertMany([{_id:1,name:"Rahul",mentees:12},{_id:2,name:"Veera",mentees:19},{_id:3,name:"Kathick",mentees:25},{_id:4,name:"Vishnu",mentees:22},{_id:5,name:"Pradeep",mentees:5}])
+
+
+Find all the topics and tasks which are thought in the month of October
+db.topics.aggregate([{$match:{month:"October"}},
+    { $lookup:
+        {
+           from: "tasks",
+           localField: "date",
+           foreignField: "date",
+           as: "tasks"
+        }
+    }
+	
+	,
+ {
+  $project: {
+   month: 1,
+   topic: 1,
+   tasks: 1
+  }
+ }
+])
+
+Find all the company drives which appeared between 15 oct-2020 and 31-oct-2020
+db.companies.find({$and:[{date:{$gt:ISODate("2020-10-15")}},{date:{$lt:ISODate("2020-10-30")}}]})
+
+Find all the company drives and students who are appeared for the placement.
+db.companies.find({placement:{$exists:true}})
+
+Find the number of problems solved by the user in codekata
+db.codekata.find({solved:{$exists:true}}).sort({solved:-1})
+
+Find all the mentors with who has the mentee's count more than 15
+db.mentors.find({mentees:{$gt:15}})
+
+Find the number of users who are absent and task is not submitted between 15 oct-2020 and 31-oct-2020
+db.tasks.aggregate([{$match:{notsubmitted:{$exists:true}}},
+    { $lookup:
+        {
+           from: "attendance",
+           localField: "date",
+           foreignField: "absent",
+           as: "result"
+        }
+    }
+	
+	,
+ {
+  $project: {
+   month: 1,
+   task: 1,
+   result: 1
+  }
+ }
+])
